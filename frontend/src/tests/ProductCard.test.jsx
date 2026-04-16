@@ -18,12 +18,16 @@ describe('ProductCard Component', () => {
         price: 99.99
     };
 
+    const mockAddToCart = vi.fn();
+
     beforeEach(() => {
-        // Mock default empty store behavior
-        useStore.mockReturnValue({
+        // Mock default empty store behavior by passing the state into the selector
+        useStore.mockImplementation((selector) => selector({
             userInfo: null,
-            addToCart: vi.fn()
-        });
+            addToCart: mockAddToCart
+        }));
+        
+        mockAddToCart.mockClear();
     });
 
     it('renders product details correctly', () => {
