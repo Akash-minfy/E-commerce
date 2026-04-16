@@ -1,0 +1,71 @@
+name: E-Commerce CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    # Backend Setup & Test
+    - name: Install Backend Dependencies
+      run: |
+        cd backend
+        npm ci || npm install
+
+    - name: Run Backend API Tests
+      env:
+        MONGO_URI: mongodb://localhost:27017/ecommerce
+      run: |
+        cd backend
+        npm test
+
+    # Frontend Setup & Test
+    - name: Install Frontend Dependencies
+      run: |
+        cd frontend
+        npm ci || npm install
+
+    - name: Run Frontend Tests
+      run: |
+        cd frontend
+        npm test
+
+    - name: Build Frontend
+      run: |
+        cd frontend
+        npm run build
+
+  docker-build:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build Backend Image
+      run: docker build -t ecommerce-backend ./backend
+      
+    - name: Build Frontend Image
+      run: docker build -t ecommerce-frontend ./frontend
