@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import useStore from '../store/useStore';
 import { ShoppingCart, ArrowLeft } from 'lucide-react';
@@ -9,6 +9,8 @@ const ProductDetails = () => {
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const addToCart = useStore(state => state.addToCart);
+    const userInfo = useStore(state => state.userInfo);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -26,6 +28,10 @@ const ProductDetails = () => {
 
     const handleAddToCart = () => {
         if (product) {
+            if (!userInfo) {
+                navigate('/login?redirect=%2Fcart');
+                return;
+            }
             addToCart({
                 product: product._id,
                 name: product.name,
@@ -45,26 +51,26 @@ const ProductDetails = () => {
             <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem', color: 'var(--text-muted)' }}>
                 <ArrowLeft size={20} /> Back to Products
             </Link>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem' }}>
                 <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-                    <img 
-                        src={product.image} 
-                        alt={product.name} 
-                        style={{ width: '100%', height: 'auto', objectFit: 'cover', display: 'block' }} 
+                    <img
+                        src={product.image}
+                        alt={product.name}
+                        style={{ width: '100%', height: 'auto', objectFit: 'cover', display: 'block' }}
                     />
                 </div>
-                
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     <div>
                         <h1 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>{product.name}</h1>
                         <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>{product.brand} | {product.category}</p>
                     </div>
-                    
+
                     <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary-color)' }}>
                         ${product.price.toFixed(2)}
                     </div>
-                    
+
                     <div style={{ color: 'var(--text-main)', lineHeight: '1.8' }}>
                         <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', fontWeight: 600 }}>Description</h3>
                         <p style={{ color: 'var(--text-muted)' }}>{product.description}</p>
@@ -77,15 +83,15 @@ const ProductDetails = () => {
                             </span>
                         </div>
                     </div>
-                    
+
                     <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
-                        <button 
-                            className="btn btn-primary" 
-                            style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }} 
+                        <button
+                            className="btn btn-primary"
+                            style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }}
                             onClick={handleAddToCart}
                             disabled={product.countInStock === 0}
                         >
-                            <ShoppingCart size={20} /> 
+                            <ShoppingCart size={20} />
                             {product.countInStock > 0 ? 'Add to Cart' : 'Out of Stock'}
                         </button>
                     </div>
