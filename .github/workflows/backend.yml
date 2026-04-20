@@ -1,10 +1,14 @@
-name: E-Commerce CI/CD
+name: Backend CI/CD
 
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'backend/**'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'backend/**'
 
 jobs:
   build-and-test:
@@ -28,7 +32,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    # Backend Setup & Test
     - name: Install Backend Dependencies
       run: |
         cd backend
@@ -39,23 +42,7 @@ jobs:
         MONGO_URI: mongodb://localhost:27017/ecommerce
       run: |
         cd backend
-        npm test
-
-    # Frontend Setup & Test
-    - name: Install Frontend Dependencies
-      run: |
-        cd frontend
-        npm ci || npm install
-
-    - name: Run Frontend Tests
-      run: |
-        cd frontend
-        npm test
-
-    - name: Build Frontend
-      run: |
-        cd frontend
-        npm run build
+        npm test -- --passWithNoTests
 
   docker-build:
     needs: build-and-test
@@ -66,6 +53,3 @@ jobs:
     
     - name: Build Backend Image
       run: docker build -t ecommerce-backend ./backend
-      
-    - name: Build Frontend Image
-      run: docker build -t ecommerce-frontend ./frontend

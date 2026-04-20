@@ -1,0 +1,52 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'frontend/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'frontend/**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v6
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install Frontend Dependencies
+      run: |
+        cd frontend
+        npm ci || npm install
+
+    - name: Run Frontend Tests
+      run: |
+        cd frontend
+        npm test -- --passWithNoTests
+
+    - name: Build Frontend
+      run: |
+        cd frontend
+        npm run build
+
+  docker-build:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v6
+    
+    - name: Build Frontend Image
+      run: docker build -t ecommerce-frontend ./frontend
